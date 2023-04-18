@@ -46,7 +46,7 @@ class Product(BaseModel):
         return values
 
 
-products = []  # список для сохранения продуктов
+products = []
 
 
 # эдитпоин для добавления нового продукта
