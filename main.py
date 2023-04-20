@@ -49,7 +49,6 @@ class Product(BaseModel):
 products = []
 
 
-# эдитпоин для добавления нового продукта
 @app.post('/products')
 async def add_product(product: Product):
     try:
@@ -59,7 +58,6 @@ async def add_product(product: Product):
         return {'status': 'error', 'message': e.errors()}, 400
 
 
-# эдитпоинт для получения списка всех продуктов
 @app.get('/products/all')
 async def get_all_products():
     return {'status': 'success', 'data': products}, 200
