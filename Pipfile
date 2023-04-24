@@ -7,6 +7,7 @@ name = "pypi"
 fastapi = "*"
 uvicorn = "*"
 pymongo = "*"
+environs = "*"
 
 [dev-packages]
 flake8 = "*"
