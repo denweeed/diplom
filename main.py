@@ -3,6 +3,7 @@ from typing import Union
 
 from pymongo import MongoClient
 from fastapi import FastAPI, Request
+import settings
 
 app = FastAPI()
 
@@ -11,10 +12,10 @@ app = FastAPI()
 def startup():
     print("startup")
 
-    client = MongoClient('mongodb://localhost:8081/')
+    client = MongoClient(settings.MONGO_URI)
     app.state.client = client
-    app.state.db = client['inflation']
-    app.state.products = app.state.db['products']
+    app.state.db = client[settings.MONGO_DB]
+    app.state.products = app.state.db[settings.PRODUCTS_COLLECTION]
 
 
 @app.get("/health-check")
