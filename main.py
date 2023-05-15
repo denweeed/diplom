@@ -18,3 +18,8 @@ def startup():
 @app.get("/health-check")
 def read_root():
     return "ok"
+
+
+@app.get("/inflation")
+def inflation(region: str = "all"):
+    return {'region': region}
