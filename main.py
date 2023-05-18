@@ -7,26 +7,22 @@ from src.settings import MONGO_URI, MONGO_DB
 
 app = FastAPI()
 
-client = MongoClient(MONGO_URI)
-mongo_db = client[MONGO_DB]
-
 
 @app.on_event("startup")
 def startup():
-    app.state.custom = 4
-    print("startup")
+    app.state.client = MongoClient(MONGO_URI)
+    app.state.mongo_db = app.state.client[MONGO_DB]
+
+
+@app.on_event("shutdown")
+def shutdown():
+    app.state.client.close()
 
 
 @app.get("/")
 def read_root(request: Request):
     customfcs = request.app.state.custom
     return {"Hello": "customfcs"}
-
-
-def get_all_products():
-    # Retrieve all products from the collection and convert the cursor to a list
-    products_data = list(mongo_db.products.find())
-    return products_data
 
 
 # Define the endpoint to add a new Product to MongoDB

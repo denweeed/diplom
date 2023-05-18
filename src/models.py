@@ -21,10 +21,3 @@ class Product(BaseModel):
     type: ProductType
     region: str
     created_at: date
-
-    @root_validator(pre=True)
-    def validate_id(cls, values):
-        products_data = values.get('products_data', [])
-        if 'id' not in values:
-            values['id'] = len(products_data) + 1
-        return values
