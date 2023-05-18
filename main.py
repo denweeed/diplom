@@ -22,4 +22,4 @@ def read_root():
 
 @app.get("/inflation")
 def inflation(region: str = "all"):
-    return {'region': region}
+    return {'region': region, 'inflation': inflation}
