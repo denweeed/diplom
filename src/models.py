@@ -1,23 +1,24 @@
-from datetime import date
-from pydantic import BaseModel, root_validator
+from datetime import datetime
+from enum import Enum
+from pydantic import BaseModel
 
 
-class ProductType(str):
+class ProductType(Enum):
     FOOD = 'food'
     EVERYDAY_USE = 'everyday_use'
 
 
-class ProductCreate(BaseModel):
+class ProductBase(BaseModel):
     name: str
     price: float
     type: ProductType
     region: str
 
 
-class Product(BaseModel):
+class ProductCreate(ProductBase):
+    pass
+
+
+class Product(ProductBase):
     id: int
-    name: str
-    price: float
-    type: ProductType
-    region: str
-    created_at: date
+    created_at: datetime
