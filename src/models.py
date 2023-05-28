@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Optional
 
 
 class ProductType(Enum):
@@ -15,10 +16,10 @@ class ProductBase(BaseModel):
     region: str
 
 
-class ProductCreate(ProductBase):
-    pass
-
-
 class Product(ProductBase):
-    id: int
-    created_at: datetime
+    id: Optional[int] = Field(..., alias='_id', title='Product ID', description='The unique identifier of the product',
+                              readOnly=True)
+    created_at: Optional[datetime] = Field(..., title='Creation Date',
+                                           description='The date and time when the product was created', readOnly=True)
+    old_price: float
+    new_price: float

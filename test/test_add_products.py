@@ -1,4 +1,5 @@
 import pytest
+from src.models import ProductType
 
 
 def test_add_product_to_db(client):
@@ -48,3 +49,16 @@ def test_add_product_with_invalid_type(client):
 
     response = client.post('/products', json=product_data)
     assert response.status_code == 422
+
+
+def test_add_product_to_db(client):
+    product_data = {
+        'name': 'Product Name',
+        'price': 9.99,
+        'type': ProductType.FOOD,
+        'region': 'Europe'
+    }
+
+    response = client.post('/products', json=product_data)
+    assert response.status_code == 201
+    assert response.json() == product_data
