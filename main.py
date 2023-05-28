@@ -21,5 +21,10 @@ def read_root():
 
 
 @app.get("/inflation")
-def inflation(region: str = "all"):
-    return {'region': region, 'inflation': inflation}
+def calculate_inflation(region: str = "all"):
+    old_price = 100.0
+    new_price = 120.0
+    # Calculating inflation in the return statement
+    inflation = ((new_price - old_price) / old_price) * 100
+
+    return {'region': region, 'inflation': ((new_price - old_price) / old_price) * 100, 'old_price': old_price,'new_price': new_price}
