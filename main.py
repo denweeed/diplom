@@ -1,4 +1,5 @@
 import pymongo
+from pymongo.results import InsertOneResult
 from pymongo import MongoClient
 from fastapi import FastAPI, Request
 from src.models import ProductBase
@@ -37,6 +38,10 @@ def add_product_to_db(product: ProductBase):
         'region': product.region
     }
     # Insert the document into the MongoDB collection
-    app.state.mongo_collection.insert_one(product_data)
+    insert_result: InsertOneResult = app.state.mongo_collection.insert_one(product_data)
+    # Get the inserted document ID
+    inserted_id = insert_result.inserted_id
+    # Retrieve the newly created document from the collection
+    new_product = app.state.mongo_collection.find_one({'_id': inserted_id})
     # Return the new product as a dictionary
-    return product_data
+    return new_product
