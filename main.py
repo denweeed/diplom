@@ -27,6 +27,13 @@ def read_root(request: Request):
     return {"Hello": "customfcs"}
 
 
+def get_product_from_database(product_id):
+    # Retrieve a product from the database based on the given identifier
+    product = app.state.mongo_collection.find_one({'_id': product_id})
+
+    return product
+
+
 # Define the endpoint to add a new Product to MongoDB
 @app.post("/products", status_code=201)
 def add_product_to_db(product: ProductBase):
@@ -45,3 +52,7 @@ def add_product_to_db(product: ProductBase):
     new_product = app.state.mongo_collection.find_one({'_id': inserted_id})
     # Return the new product as a dictionary
     return new_product
+
+
+def get_product_from_database(product_id):
+    return app.state.mongo_collection.find_one({'_id': product_id})
