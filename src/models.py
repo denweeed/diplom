@@ -21,6 +21,4 @@ class Product(ProductBase):
                               readOnly=True)
     created_at: Optional[datetime] = Field(title='Creation Date',
                                            description='The date and time when the product was created', readOnly=True)
-
-    old_price: float
-    new_price: float
+    price: float

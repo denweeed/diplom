@@ -52,7 +52,3 @@ def add_product_to_db(product: ProductBase):
     new_product = app.state.mongo_collection.find_one({'_id': inserted_id})
     # Return the new product as a dictionary
     return new_product
-
-
-def get_product_from_database(product_id):
-    return app.state.mongo_collection.find_one({'_id': product_id})
