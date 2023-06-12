@@ -1,12 +1,13 @@
 from pymongo import MongoClient
 from fastapi import FastAPI
 import settings
+from datetime import datetime
 
 app = FastAPI()
 
-client = MongoClient("mongodb://localhost:27017/")
-db = client["mydatabase"]
-collection = db["products"]
+client = MongoClient(settings.MONGO_URI)
+db = client[settings.mongodb_database]
+collection = db[settings.mongodb_collection]
 
 
 @app.on_event("startup")
@@ -28,32 +29,35 @@ def read_root():
 def calculate_inflation(type_product: str = "all"):
     # Selection of products of the same type "food"
     if type_product == "all":
-        products = collection.find({"type": "food"})
+        products = collection.find()
     else:
-        products = collection.find({"type": "food", "type_product": type_product})
+        products = collection.find({"Type": type_product})
 
-    # Creating a dictionary to store previous prices
-    previous_prices = {}
-
-    # Processing products and linking previous prices to current prices
-    for product in products:
-        product_id = product["id"]  # Product ID
-        current_price = product["price"]  # Current product price
-
-        # Find previous price by product id
-        previous_price = previous_prices.get(product_id)
-        # If the previous price is found, we calculate inflation
-        if previous_price is not None:
-            inflation = ((current_price - previous_price) / previous_price) * 100  # Calculation of inflation
-            product["previous_price"] = previous_price  # Adding "previous_price" field to product
-            product["inflation"] = inflation  # Adding the "inflation" field to the product
-
-        # Save the current price as the previous price for the next cycle
-        previous_prices[product_id] = current_price
+    result = []
 
     for product in products:
-        print(product)
+        current_price = product["Price"]
 
-        # Further processing of results and data return
+    previous_prices = collection.find({
+        "Product": product["Product"],
+        "Created At": {"$lt": datetime.now()}
+    }).sort("Created At", -1)
 
-    return {"products": list(products)}
+    previous_prices_list = [prev["Price"] for prev in previous_prices]
+
+    if previous_prices_list:
+        previous_price = previous_prices_list[0]
+        inflation = ((current_price - previous_price) / previous_price) * 100
+    else:
+        inflation = None
+
+        product_info = {
+            "Product": product["Product"],
+            "Type": product["Type"],
+            "Current Price": current_price,
+            "Previous Prices": previous_prices_list,
+            "Inflation": inflation
+        }
+        result.append(product_info)
+
+    return result
