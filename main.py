@@ -3,10 +3,10 @@ from pymongo.results import InsertOneResult
 from pymongo import MongoClient
 from fastapi import FastAPI
 import settings
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi import FastAPI, Request
 from src.models import ProductBase
-from src.settings import MONGO_URI, MONGO_DB, PRODUCTS_COLLECTION
+from src.settings import MONGO_URI, MONGO_DB, PRODUCTS_COLLECTION, CURRENT_PERIOD_MONTHS, PREVIOUS_PERIOD_MONTHS
 
 
 app = FastAPI()
@@ -61,39 +61,48 @@ def add_product_to_db(product: ProductBase):
     return new_product
 
 
+def relativedelta(months):
+    pass
+
+
 @app.get("/inflation")
-def calculate_inflation(type_product: str = "all"):
-    # Selection of products of the same type "food"
-    if type_product == "all":
-        products = collection.find()
-    else:
-        products = collection.find({"Type": type_product})
+def calculate_inflation(type_product: str = "all", start_date: datetime = datetime.now(), end_date: datetime = datetime.now()):
 
-    result = []
+    """
+    Calculates the total sum of product prices within a specified period.
 
-    for product in products:
-        current_price = product["Price"]
+    Args:
+        type_product (str, optional): The type of product to filter (default is "all").
+        start_date (datetime): The start date of the period.
+        end_date (datetime): The end date of the period.
 
-    previous_prices = collection.find({
-        "Product": product["Product"],
-        "Created At": {"$lt": datetime.now()}
-    }).sort("Created At", -1)
+    Returns:
+        float: The total sum of product prices within the specified period.
+    """
+    products_current_period = collection.find()
 
-    previous_prices_list = [prev["Price"] for prev in previous_prices]
+    total_sum_current_period = 0
 
-    if previous_prices_list:
-        previous_price = previous_prices_list[0]
-        inflation = ((current_price - previous_price) / previous_price) * 100
-    else:
-        inflation = None
+    for product in products_current_period:
+        price = product["Price"]
+        creation_date = datetime.strptime(product["Creation Date"], "%d.%m.%Y")
 
-        product_info = {
-            "Product": product["Product"],
-            "Type": product["Type"],
-            "Current Price": current_price,
-            "Previous Prices": previous_prices_list,
-            "Inflation": inflation
-        }
-        result.append(product_info)
+        # Filter out products outside the specified period
+        if start_date <= creation_date <= end_date:
+            total_sum_current_period += price
 
-    return result
+    products_previous_period = collection.find()
+
+    total_sum_previous_period = 0
+
+    for product in products_previous_period:
+        price = product["Price"]
+        creation_date = datetime.strptime(product["Creation Date"], "%d.%m.%Y")
+
+        # Filter out products for the previous period
+        previous_start_date = start_date - relativedelta(months=PREVIOUS_PERIOD_MONTHS)
+        previous_end_date = end_date - relativedelta(months=PREVIOUS_PERIOD_MONTHS)
+        if previous_start_date <= creation_date <= previous_end_date:
+            total_sum_previous_period += price
+
+    return total_sum_current_period, total_sum_previous_period

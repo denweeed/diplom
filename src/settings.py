@@ -8,3 +8,5 @@ BASE_DIR = Path(__file__).parent
 MONGO_URI = env.str("MONGO_URI", "mongodb://localhost:8081")
 MONGO_DB = env.str("MONGO_DB", default="inflation")
 PRODUCTS_COLLECTION = env.str("PRODUCTS_COLLECTION", default="products")
+CURRENT_PERIOD_MONTHS = env.int("CURRENT_PERIOD_MONTHS", default=1)
+PREVIOUS_PERIOD_MONTHS = env.int("PREVIOUS_PERIOD_MONTHS", default=-2)
