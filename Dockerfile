@@ -1,5 +1,5 @@
-# Use the official Python 3.9 image
-FROM python:3.9
+# Use the official Python 3.11 image
+FROM python:3.11
 
 # Set the working directory in the container
 WORKDIR /app
@@ -14,12 +14,7 @@ RUN pip install pipenv
 RUN pipenv install --system --deploy
 
 # Copy the project files to the container
-COPY main.py /app/main.py
-COPY docker-compose.yml /app/docker-compose.yml
-COPY Pipfile.lock /app/Pipfile.lock
-COPY README.md /app/README.md
-COPY src /app/src
-COPY test /app/test
+COPY . /app/
 
 # Set the environment variable for the port
 ENV PORT=8000
@@ -28,4 +23,4 @@ ENV PORT=8000
 EXPOSE $PORT
 
 # Start the FastAPI server with Uvicorn
-CMD ["pipenv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["pipenv", "run", "gunicorn", "main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
