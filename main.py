@@ -14,6 +14,7 @@ def startup():
     app.state.client = MongoClient(MONGO_URI)
     app.state.mongo_db = app.state.client[MONGO_DB]
     app.state.mongo_collection = app.state.mongo_db[PRODUCTS_COLLECTION]
+    app.state.custom = "Custom Value"
 
 
 @app.on_event("shutdown")
@@ -23,8 +24,8 @@ def shutdown():
 
 @app.get("/")
 def read_root(request: Request):
-    customfcs = request.app.state.custom
-    return {"Hello": "customfcs"}
+    custom_value = request.app.state.custom
+    return {"Hello": custom_value}
 
 
 def get_product_from_database(product_id):
@@ -42,7 +43,8 @@ def add_product_to_db(product: ProductBase):
         'name': product.name,
         'price': product.price,
         'type': product.type.value,
-        'region': product.region
+        'region': product.region,
+        'created_at': product.datatime
     }
     # Insert the document into the MongoDB collection
     insert_result: InsertOneResult = app.state.mongo_collection.insert_one(product_data)
