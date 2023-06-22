@@ -8,8 +8,6 @@ fastapi = "*"
 uvicorn = "*"
 pymongo = "*"
 environs = "*"
-flask = "*"
-myapplication = "*"
 python-dateutil = "*"
 
 [requires]
