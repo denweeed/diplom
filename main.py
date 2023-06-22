@@ -6,21 +6,17 @@ import settings
 from datetime import datetime, timedelta
 from fastapi import FastAPI, Request
 from src.models import ProductBase
-from src.settings import MONGO_URI, MONGO_DB, PRODUCTS_COLLECTION, CURRENT_PERIOD_MONTHS, PREVIOUS_PERIOD_MONTHS
+from dateutil.relativedelta import relativedelta
 
 
 app = FastAPI()
 
-client = MongoClient(settings.MONGO_URI)
-db = client[settings.mongodb_database]
-collection = db[settings.mongodb_collection]
-
 
 @app.on_event("startup")
 def startup():
-    app.state.client = MongoClient(MONGO_URI)
-    app.state.mongo_db = app.state.client[MONGO_DB]
-    app.state.mongo_collection = app.state.mongo_db[PRODUCTS_COLLECTION]
+    app.state.client = MongoClient(settings.MONGO_URI)
+    app.state.mongo_db = app.state.client[settings.MONGO_DB]
+    app.state.mongo_collection = app.state.mongo_db[settings.PRODUCTS_COLLECTION]
 
 
 @app.on_event("shutdown")
@@ -49,7 +45,7 @@ def add_product_to_db(product: ProductBase):
         'name': product.name,
         'price': product.price,
         'type': product.type.value,
-        'region': product.region
+        'created_at': datetime.utcnow()
     }
     # Insert the document into the MongoDB collection
     insert_result: InsertOneResult = app.state.mongo_collection.insert_one(product_data)
@@ -61,48 +57,38 @@ def add_product_to_db(product: ProductBase):
     return new_product
 
 
-def relativedelta(months):
-    pass
-
-
 @app.get("/inflation")
-def calculate_inflation(type_product: str = "all", start_date: datetime = datetime.now(), end_date: datetime = datetime.now()):
+def calculate_inflation(type_product: str = "all"):
+    products_current_period = app.state.mongo_collection.find({
+        "created_at": {
+            "$lt":datetime.utcnow(),
+            "$gt":datetime.utcnow() - relativedelta(months=settings.PERIOD_MONTHS)
+        }
+    })
 
-    """
-    Calculates the total sum of product prices within a specified period.
-
-    Args:
-        type_product (str, optional): The type of product to filter (default is "all").
-        start_date (datetime): The start date of the period.
-        end_date (datetime): The end date of the period.
-
-    Returns:
-        float: The total sum of product prices within the specified period.
-    """
-    products_current_period = collection.find()
+    products_previous_period = app.state.mongo_collection.find({
+        "created_at": {
+            "$lt": datetime.utcnow() - relativedelta(years=1),
+            "$gt": datetime.utcnow() - relativedelta(years=1) - relativedelta(months=settings.PERIOD_MONTHS)
+        }
+    })
 
     total_sum_current_period = 0
-
-    for product in products_current_period:
-        price = product["Price"]
-        creation_date = datetime.strptime(product["Creation Date"], "%d.%m.%Y")
-
-        # Filter out products outside the specified period
-        if start_date <= creation_date <= end_date:
-            total_sum_current_period += price
-
-    products_previous_period = collection.find()
-
     total_sum_previous_period = 0
 
+    for product in products_current_period:
+        price = product["price"]
+        total_sum_current_period += price
+
     for product in products_previous_period:
-        price = product["Price"]
-        creation_date = datetime.strptime(product["Creation Date"], "%d.%m.%Y")
+        price = product["price"]
+        total_sum_previous_period += price
 
-        # Filter out products for the previous period
-        previous_start_date = start_date - relativedelta(months=PREVIOUS_PERIOD_MONTHS)
-        previous_end_date = end_date - relativedelta(months=PREVIOUS_PERIOD_MONTHS)
-        if previous_start_date <= creation_date <= previous_end_date:
-            total_sum_previous_period += price
+    inflation_rate = (total_sum_current_period - total_sum_previous_period) / total_sum_previous_period * 100
 
-    return total_sum_current_period, total_sum_previous_period
+    return inflation_rate
+
+
+
+
+
