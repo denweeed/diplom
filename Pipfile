@@ -10,10 +10,7 @@ pymongo = "*"
 environs = "*"
 flask = "*"
 myapplication = "*"
-
-[dev-packages]
-flake8 = "*"
-pytest = "*"
+python-dateutil = "*"
 
 [requires]
 python_version = "3.10"

@@ -77,18 +77,11 @@ def calculate_inflation(type_product: str = "all"):
     total_sum_previous_period = 0
 
     for product in products_current_period:
-        price = product["price"]
-        total_sum_current_period += price
+        total_sum_current_period += product["price"]
 
     for product in products_previous_period:
-        price = product["price"]
-        total_sum_previous_period += price
+        total_sum_previous_period += product["price"]
 
     inflation_rate = (total_sum_current_period - total_sum_previous_period) / total_sum_previous_period * 100
 
     return inflation_rate
-
-
-
-
-
